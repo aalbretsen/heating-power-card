@@ -24,6 +24,7 @@ interface HomeAssistant {
 // ─── Public config types ─────────────────────────────────────────────────────
 
 export type GaugeMode = "solid" | "gradient";
+export type BadgePosition = "left" | "right";
 
 export interface EntityConfig {
   /** HA entity_id of a power sensor, e.g. sensor.floor_heater_power */
@@ -53,17 +54,27 @@ export interface HeatingPowerCardConfig {
   color_inactive?: string;
 
   // ── Badge ─────────────────────────────────────────────────────────────────
-  /** Text colour of the active-sources badge. Default: #FFFFFF */
+  /** Show the active-sources count badge. Default: true */
+  show_badge?: boolean;
+  /** Badge background colour. Default: color_active */
+  badge_background_color?: string;
+  /** Badge text colour. Default: var(--primary-text-color) */
   badge_text_color?: string;
+  /**
+   * Badge position relative to the gauge bar.
+   * "left"  → between value and gauge (default, current behaviour)
+   * "right" → between gauge and dots
+   */
+  badge_position?: BadgePosition;
 
   // ── Gauge ─────────────────────────────────────────────────────────────────
   /** Full-scale value in Watts. Default: 15000 */
   max_power?: number;
   /** Visual style of the gauge bar. Default: gradient */
   gauge_mode?: GaugeMode;
-  /** Left (low) colour for gradient mode. Default: #FFCC80 */
+  /** Left (low) colour for gradient mode. Default: #DE9044 */
   gauge_gradient_from?: string;
-  /** Right (high) colour for gradient mode. Default: #E65100 */
+  /** Right (high) colour for gradient mode. Default: #FF7C00 */
   gauge_gradient_to?: string;
   /** Show tick-mark scale below the gauge. Default: true */
   show_scale?: boolean;
@@ -76,6 +87,11 @@ export interface HeatingPowerCardConfig {
    * One dot per active source (power > 0). Default: true
    */
   show_dots?: boolean;
+  /**
+   * Dot colour. Default: var(--primary-text-color) — the HA "white" in most themes,
+   * adapts automatically to light / dark mode.
+   */
+  dot_color?: string;
 }
 
 // ─── Defaults ────────────────────────────────────────────────────────────────
@@ -85,7 +101,9 @@ interface Defaults {
   icon_inactive: string;
   color_active: string;
   color_inactive: string;
+  show_badge: boolean;
   badge_text_color: string;
+  badge_position: BadgePosition;
   max_power: number;
   gauge_mode: GaugeMode;
   gauge_gradient_from: string;
@@ -100,7 +118,9 @@ const DEFAULTS: Defaults = {
   icon_inactive:        "mdi:fire-off",
   color_active:         "#FF8C00",
   color_inactive:       "#9E9E9E",
-  badge_text_color:     "#FFFFFF",
+  show_badge:           true,
+  badge_text_color:     "var(--primary-text-color)",
+  badge_position:       "left",
   max_power:            15000,
   gauge_mode:           "gradient",
   gauge_gradient_from:  "#DE9044",
@@ -241,10 +261,11 @@ export class HeatingPowerCard extends LitElement {
   }
 
   private _renderBadge(activeCount: number): TemplateResult {
-    if (activeCount === 0) return html``;
+    if (!this._c.show_badge || activeCount === 0) return html``;
+    const bg   = this._config.badge_background_color ?? this._c.color_active;
+    const text = this._c.badge_text_color;
     return html`
-      <span class="hpc-badge"
-        style="background:${this._c.color_active};color:${this._c.badge_text_color};">
+      <span class="hpc-badge" style="background:${bg};color:${text};">
         ${activeCount}
       </span>
     `;
@@ -323,7 +344,9 @@ export class HeatingPowerCard extends LitElement {
     const activeWatts = watts.filter((w) => w > 0);
     if (activeWatts.length === 0) return html``;
 
-    const color = this._c.color_active;
+    // Use configured dot_color, or fall back to the HA primary text colour so
+    // dots read as "white" in the default dark/light themes.
+    const color = this._config.dot_color ?? "var(--primary-text-color)";
 
     return html`
       <div class="hpc-dots">
@@ -341,13 +364,17 @@ export class HeatingPowerCard extends LitElement {
     const total       = watts.reduce((s, w) => s + w, 0);
     const activeCount = watts.filter((w) => w > 0).length;
 
+    const badge       = this._renderBadge(activeCount);
+    const badgeLeft   = this._c.badge_position === "left";
+
     return html`
       <ha-card>
         <div class="hpc-container">
           ${this._renderIcon(total)}
           ${this._renderValue(total)}
-          ${this._renderBadge(activeCount)}
+          ${badgeLeft ? badge : nothing}
           ${this._renderGauge(total)}
+          ${badgeLeft ? nothing : badge}
           ${this._c.show_dots ? this._renderDots(watts) : nothing}
         </div>
       </ha-card>
@@ -369,6 +396,10 @@ export class HeatingPowerCard extends LitElement {
         box-sizing: border-box;
       }
 
+      /*
+       * 56px matches the standard Home Assistant 1-row tile/grid-item height,
+       * giving equal top/bottom padding to the 14px side padding.
+       */
       .hpc-container {
         display: flex;
         align-items: center;
@@ -376,7 +407,7 @@ export class HeatingPowerCard extends LitElement {
         padding: 0 14px;
         flex: 1;
         min-width: 0;
-        height: 60px;
+        height: 56px;
         box-sizing: border-box;
       }
 

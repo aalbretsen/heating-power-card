@@ -14,12 +14,12 @@ A compact Home Assistant Lovelace card that shows accumulated heating power from
 
 - 🔥 **Configurable icon** — separate MDI icons and colours for active / inactive state
 - 🔢 **Total power value** — auto-formatted in kW, colour-coded by state
-- ⬤ **Active-source badge** — shows the count of sources currently drawing power; hides automatically when none are on
+- ⬤ **Active-source badge** — shows the count of sources currently drawing power; hides automatically when none are on; position and colours configurable
 - 📊 **Animated gauge bar** — two modes:
   - `gradient` — colour transitions from light warm orange to deep HA orange as load increases (default)
   - `solid` — single colour fill
 - ↕️ **Optional scale** — configurable tick marks below the gauge
-- ⚫ **Active-source dots** — one dot per active source (power > 0); grows column-first in up to 3 rows, adding columns as the active count increases
+- ⚫ **Active-source dots** — one dot per active source (power > 0), colour configurable
 - ⚖️ **Automatic unit handling** — W, kW, MW detected from `unit_of_measurement`; custom `factor` per sensor for non-standard units
 - ↔️ **Sections view native** — reports `grid_rows: 1`, `grid_columns: 12`; resizes cleanly in the new grid-based UI
 - 🔄 **Smooth CSS transitions** — gauge fill animates at 0.5 s ease
@@ -70,21 +70,25 @@ max_power: 10000
 
 ### Top-level options
 
-| Option                | Type               | Default          | Description                                                                |
-|-----------------------|--------------------|------------------|----------------------------------------------------------------------------|
-| `entities`            | `EntityConfig[]`   | **required**     | List of power sensor entities (max 99).                                    |
-| `icon_active`         | `string`           | `mdi:fire`       | MDI icon when total > 0.                                                   |
-| `icon_inactive`       | `string`           | `mdi:fire-off`   | MDI icon when total = 0.                                                   |
-| `color_active`        | `string`           | `#FF8C00`        | CSS colour when heating is on (icon, value, badge, dots).                  |
-| `color_inactive`      | `string`           | `#9E9E9E`        | CSS colour when heating is off.                                             |
-| `badge_text_color`    | `string`           | `#FFFFFF`        | Text colour of the active-sources count badge.                             |
-| `max_power`           | `number`           | `15000`          | Full-scale in **Watts**.                                                   |
-| `gauge_mode`          | `solid\|gradient`  | `gradient`       | Visual style of the gauge bar.                                             |
-| `gauge_gradient_from` | `string`           | `#FFCC80`        | Low-end colour for `gradient` mode.                                        |
-| `gauge_gradient_to`   | `string`           | `#E65100`        | High-end colour for `gradient` mode.                                       |
-| `show_scale`          | `boolean`          | `true`           | Show tick marks below the gauge.                                           |
-| `scale_ticks`         | `number`           | `5`              | Approximate number of major ticks.                                         |
-| `show_dots`           | `boolean`          | `true`           | Show per-source indicator dots on the right.                               |
+| Option                    | Type              | Default                       | Description                                                                |
+|---------------------------|-------------------|-------------------------------|----------------------------------------------------------------------------|
+| `entities`                | `EntityConfig[]`  | **required**                  | List of power sensor entities (max 99).                                    |
+| `icon_active`             | `string`          | `mdi:fire`                    | MDI icon when total > 0.                                                   |
+| `icon_inactive`           | `string`          | `mdi:fire-off`                | MDI icon when total = 0.                                                   |
+| `color_active`            | `string`          | `#FF8C00`                     | CSS colour when heating is on (icon, value, badge background, dots).       |
+| `color_inactive`          | `string`          | `#9E9E9E`                     | CSS colour when heating is off.                                             |
+| `show_badge`              | `boolean`         | `true`                        | Show the active-sources count badge.                                       |
+| `badge_background_color`  | `string`          | → `color_active`              | Badge background colour.                                                   |
+| `badge_text_color`        | `string`          | `var(--primary-text-color)`   | Badge text colour.                                                         |
+| `badge_position`          | `left\|right`     | `left`                        | `left` — between value and gauge. `right` — between gauge and dots.        |
+| `max_power`               | `number`          | `15000`                       | Full-scale in **Watts**.                                                   |
+| `gauge_mode`              | `solid\|gradient` | `gradient`                    | Visual style of the gauge bar.                                             |
+| `gauge_gradient_from`     | `string`          | `#DE9044`                     | Low-end colour for `gradient` mode.                                        |
+| `gauge_gradient_to`       | `string`          | `#FF7C00`                     | High-end colour for `gradient` mode.                                       |
+| `show_scale`              | `boolean`         | `true`                        | Show tick marks below the gauge.                                           |
+| `scale_ticks`             | `number`          | `5`                           | Approximate number of major ticks.                                         |
+| `show_dots`               | `boolean`         | `true`                        | Show per-source indicator dots on the right.                               |
+| `dot_color`               | `string`          | `var(--primary-text-color)`   | Dot colour. Defaults to the HA theme foreground (white in most themes).    |
 
 ### EntityConfig
 
@@ -125,7 +129,22 @@ layout_options:
   grid_rows: 1
 ```
 
-### Solid bar, no dots, no scale
+### Badge on the right, custom dot colour
+
+```yaml
+type: custom:heating-power-card
+entities:
+  - entity: sensor.heating_cable_power
+  - entity: sensor.floor_heater_power
+max_power: 15000
+badge_position: right
+dot_color: "#FF8C00"
+layout_options:
+  grid_columns: 12
+  grid_rows: 1
+```
+
+### Badge hidden, solid bar, no scale
 
 ```yaml
 type: custom:heating-power-card
@@ -134,6 +153,7 @@ entities:
   - entity: sensor.floor_heater_power
 max_power: 12000
 gauge_mode: solid
+show_badge: false
 show_scale: false
 show_dots: false
 layout_options:
