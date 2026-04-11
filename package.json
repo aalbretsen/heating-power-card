@@ -1,0 +1,43 @@
+{
+  "name": "heating-power-card",
+  "version": "1.0.0",
+  "description": "Compact Home Assistant Lovelace card for heating power monitoring",
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "custom-card",
+    "hacs",
+    "heating",
+    "power"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/heating-power-card.js",
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs",
+    "build:prod": "NODE_ENV=production rollup -c rollup.config.mjs",
+    "watch": "rollup -c rollup.config.mjs --watch",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lit": "^3.2.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@typescript-eslint/eslint-plugin": "^7.9.0",
+    "@typescript-eslint/parser": "^7.9.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.0",
+    "rollup": "^4.17.2",
+    "tslib": "^2.6.3",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

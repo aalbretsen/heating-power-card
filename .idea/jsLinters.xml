@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <!--
+    ESLint: use the version installed in node_modules (automatic config detection).
+    IntelliJ will read .eslintrc.json from the project root.
+  -->
+  <component name="EslintConfiguration">
+    <option name="fix-on-save" value="true" />
+    <option name="run-for-files" value="**/*.{ts,js}" />
+  </component>
+
+  <!--
+    Prettier: use the version installed in node_modules.
+    IntelliJ will read .prettierrc.json from the project root.
+    "On save" applies to all files Prettier handles.
+  -->
+  <component name="PrettierConfiguration">
+    <option name="myConfigurationMode" value="AUTOMATIC" />
+    <option name="myRunOnSave" value="true" />
+    <option name="myRunOnReformat" value="true" />
+  </component>
+</project>

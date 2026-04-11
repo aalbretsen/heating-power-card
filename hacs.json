@@ -1,0 +1,6 @@
+{
+  "name": "Heating Power Card",
+  "render_readme": true,
+  "homeassistant": "2024.1.0",
+  "filename": "dist/heating-power-card.js"
+}

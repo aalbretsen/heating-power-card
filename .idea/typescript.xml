@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <!--
+    Use the TypeScript installed in this project's node_modules rather than
+    IntelliJ's bundled version.  This ensures IDE type-checking matches the
+    build output exactly.
+  -->
+  <component name="TypeScriptCompiler">
+    <option name="useService" value="true" />
+    <option name="versionType" value="SERVICE_DIRECTORY" />
+    <option name="serviceDirectory" value="$PROJECT_DIR$/node_modules/typescript/lib" />
+    <option name="recompileOnChanges" value="false" />
+  </component>
+</project>
