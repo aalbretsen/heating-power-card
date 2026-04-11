@@ -123,46 +123,50 @@ interface Defaults {
 }
 
 const DEFAULTS: Defaults = {
-  icon_active:          "mdi:fire",
-  icon_inactive:        "mdi:fire-off",
-  color_active:         "#FF8C00",
-  color_inactive:       "#9E9E9E",
-  show_badge:           true,
-  badge_text_color:     "var(--primary-text-color)",
-  badge_position:       "left",
-  max_power:            15000,
-  gauge_mode:           "gradient",
-  gauge_gradient_from:  "#DE9044",
-  gauge_gradient_to:    "#FF7C00",
-  show_scale:           true,
-  scale_ticks:          5,
-  show_dots:            true,
+  icon_active: "mdi:fire",
+  icon_inactive: "mdi:fire-off",
+  color_active: "#FF8C00",
+  color_inactive: "#9E9E9E",
+  show_badge: true,
+  badge_text_color: "var(--primary-text-color)",
+  badge_position: "left",
+  max_power: 15000,
+  gauge_mode: "gradient",
+  gauge_gradient_from: "#DE9044",
+  gauge_gradient_to: "#FF7C00",
+  show_scale: true,
+  scale_ticks: 5,
+  show_dots: true,
 };
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
 
 function hexToRgb(hex: string): [number, number, number] {
   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.trim());
-  return m
-    ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)]
-    : [128, 128, 128];
+  return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [128, 128, 128];
 }
 
 function interpolateColor(from: string, to: string, t: number): string {
   const ratio = Math.max(0, Math.min(1, t));
   const [r1, g1, b1] = hexToRgb(from);
   const [r2, g2, b2] = hexToRgb(to);
-  const ch = (a: number, b: number) =>
-    Math.round(a + (b - a) * ratio).toString(16).padStart(2, "0");
+  const ch = (a: number, b: number): string =>
+    Math.round(a + (b - a) * ratio)
+      .toString(16)
+      .padStart(2, "0");
   return `#${ch(r1, r2)}${ch(g1, g2)}${ch(b1, b2)}`;
 }
 
 function getUnitMultiplier(unit: string | undefined): number {
   switch (unit?.trim().toLowerCase()) {
-    case "kw":  return 1_000;
-    case "mw":  return 1_000_000;
-    case "gw":  return 1_000_000_000;
-    default:    return 1; // W, or unrecognised — apply factor only
+    case "kw":
+      return 1_000;
+    case "mw":
+      return 1_000_000;
+    case "gw":
+      return 1_000_000_000;
+    default:
+      return 1; // W, or unrecognised — apply factor only
   }
 }
 
@@ -184,14 +188,14 @@ function getEntityWatts(hass: HomeAssistant, cfg: EntityConfig): number {
 function niceTickInterval(max: number, desiredTicks: number): number {
   if (max <= 0 || desiredTicks <= 0) return max;
   const rough = max / desiredTicks;
-  const mag   = Math.pow(10, Math.floor(Math.log10(rough)));
-  const norm  = rough / mag;
-  const nice  = norm < 1.5 ? 1 : norm < 3.5 ? 2 : norm < 7.5 ? 5 : 10;
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough / mag;
+  const nice = norm < 1.5 ? 1 : norm < 3.5 ? 2 : norm < 7.5 ? 5 : 10;
   return nice * mag;
 }
 
 function formatKw(watts: number): string {
-  if (watts < 100)  return (watts / 1000).toFixed(2);
+  if (watts < 100) return (watts / 1000).toFixed(2);
   if (watts < 10000) return (watts / 1000).toFixed(1);
   return (watts / 1000).toFixed(0);
 }
@@ -224,17 +228,13 @@ export class HeatingPowerCard extends LitElement {
   }
 
   /** Grid options for the Sections view. */
-  getGridOptions() {
+  getGridOptions(): object {
     return { rows: 1, min_rows: 1, max_rows: 1, columns: 12, min_columns: 4 };
   }
 
   static getStubConfig(): HeatingPowerCardConfig {
     return {
-      entities: [
-        { entity: "sensor.heating_cable_power" },
-        { entity: "sensor.floor_heater_power" },
-        { entity: "sensor.panel_heater_power" },
-      ],
+      entities: [{ entity: "sensor.heating_cable_power" }, { entity: "sensor.floor_heater_power" }, { entity: "sensor.panel_heater_power" }],
       max_power: 15000,
       gauge_mode: "gradient",
       show_scale: true,
@@ -253,56 +253,35 @@ export class HeatingPowerCard extends LitElement {
 
   private _renderIcon(total: number): TemplateResult {
     const active = total > 0;
-    return html`
-      <ha-icon
-        .icon=${active ? this._c.icon_active : this._c.icon_inactive}
-        style="color: ${active ? this._c.color_active : this._c.color_inactive};"
-      ></ha-icon>
-    `;
+    return html`<ha-icon .icon=${active ? this._c.icon_active : this._c.icon_inactive} style="color: ${active ? this._c.color_active : this._c.color_inactive};"></ha-icon>`;
   }
 
   private _renderValue(total: number): TemplateResult {
     const active = total > 0;
-    return html`
-      <span class="hpc-value" style="color: ${active ? this._c.color_active : this._c.color_inactive};">
-        ${formatKw(total)}<span class="hpc-unit"> kW</span>
-      </span>
-    `;
+    return html`<span class="hpc-value" style="color: ${active ? this._c.color_active : this._c.color_inactive};"> ${formatKw(total)}<span class="hpc-unit"> kW</span> </span>`;
   }
 
   private _renderBadge(activeCount: number): TemplateResult {
     if (!this._c.show_badge || activeCount === 0) return html``;
-    const bg   = this._config.badge_background_color ?? this._c.color_active;
+    const bg = this._config.badge_background_color ?? this._c.color_active;
     const text = this._c.badge_text_color;
-    return html`
-      <span class="hpc-badge" style="background:${bg};color:${text};">
-        ${activeCount}
-      </span>
-    `;
+    return html`<span class="hpc-badge" style="background:${bg};color:${text};">${activeCount}</span>`;
   }
 
   private _renderGauge(total: number): TemplateResult {
-    const max  = this._c.max_power;
+    const max = this._c.max_power;
     const mode = this._c.gauge_mode;
-    const pct  = Math.min(100, (total / max) * 100);
+    const pct = Math.min(100, (total / max) * 100);
 
     let fill: TemplateResult | typeof nothing;
 
     if (mode === "gradient") {
       const from = this._c.gauge_gradient_from;
-      const to   = this._c.gauge_gradient_to;
-      // The tip colour matches the gradient position at current load.
-      const tip  = interpolateColor(from, to, total / max);
-      fill = html`
-        <div class="hpc-fill"
-          style="width:${pct.toFixed(4)}%;background:linear-gradient(to right,${from},${tip});"></div>
-      `;
+      const to = this._c.gauge_gradient_to;
+      const tip = interpolateColor(from, to, total / max);
+      fill = html`<div class="hpc-fill" style="width:${pct.toFixed(4)}%;background:linear-gradient(to right,${from},${tip});"></div>`;
     } else {
-      // solid
-      fill = html`
-        <div class="hpc-fill"
-          style="width:${pct.toFixed(4)}%;background:${this._c.color_active};"></div>
-      `;
+      fill = html`<div class="hpc-fill" style="width:${pct.toFixed(4)}%;background:${this._c.color_active};"></div>`;
     }
 
     return html`
@@ -364,12 +343,12 @@ export class HeatingPowerCard extends LitElement {
   protected render(): TemplateResult | typeof nothing {
     if (!this.hass || !this._config) return nothing;
 
-    const watts       = this._config.entities.map((e) => getEntityWatts(this.hass, e));
-    const total       = watts.reduce((s, w) => s + w, 0);
+    const watts = this._config.entities.map((e) => getEntityWatts(this.hass, e));
+    const total = watts.reduce((s, w) => s + w, 0);
     const activeCount = watts.filter((w) => w > 0).length;
 
-    const badge       = this._renderBadge(activeCount);
-    const badgeLeft   = this._c.badge_position === "left";
+    const badge = this._renderBadge(activeCount);
+    const badgeLeft = this._c.badge_position === "left";
 
     return html`
       <ha-card>
@@ -496,9 +475,18 @@ export class HeatingPowerCard extends LitElement {
         line-height: 1;
         white-space: nowrap;
       }
-      .hpc-tick--mid   { transform: translateX(-50%); }
-      .hpc-tick--start { transform: translateX(0); }
-      .hpc-tick--end   { transform: translateX(-100%); }
+
+      .hpc-tick--mid {
+        transform: translateX(-50%);
+      }
+
+      .hpc-tick--start {
+        transform: translateX(0);
+      }
+
+      .hpc-tick--end {
+        transform: translateX(-100%);
+      }
 
       /* ── Dots ── */
 
@@ -547,8 +535,7 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: "heating-power-card",
   name: "Heating Power Card",
-  description:
-    "Compact card showing accumulated heating power from multiple sources.",
+  description: "Compact card showing accumulated heating power from multiple sources.",
   preview: true,
   documentationURL: "https://github.com/aalbretsen/heating-power-card",
 });
