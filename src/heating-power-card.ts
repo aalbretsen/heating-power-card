@@ -342,12 +342,6 @@ export class HeatingPowerCard extends LitElement {
    * Render active-source dots.
    *
    * Layout: column-first grid, max 3 rows, columns grow as active count increases.
-   *   1–3 active  → 1 column  (rows fill top-to-bottom)
-   *   4–6 active  → 2 columns
-   *   7–9 active  → 3×3 grid
-   *   10–12 active → 4 columns (4th dot added to col 4 row 1, then row 2, row 3)
-   *   …and so on.
-   *
    * Only active sources (watts > 0) produce a dot. Inactive sources are hidden.
    */
   private _renderDots(watts: number[]): TemplateResult {
