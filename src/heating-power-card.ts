@@ -162,7 +162,7 @@ function getEntityWatts(hass: HomeAssistant, cfg: EntityConfig): number {
   if (!st) return 0;
   if (st.state === "unavailable" || st.state === "unknown" || st.state === "none") return 0;
   const raw = parseFloat(st.state);
-  if (!isFinite(raw) || raw < 0) return 0;
+  if (!isFinite(raw) || raw < 1) return 0;
   const unit = st.attributes.unit_of_measurement as string | undefined;
   return raw * getUnitMultiplier(unit) * (cfg.factor ?? 1);
 }

@@ -32,7 +32,7 @@ function t(t,e,s,i){var r,n=arguments.length,o=n<3?e:null===i?i=Object.getOwnPro
       <div class="hpc-dots">
         ${e.map(()=>F`<div class="hpc-dot" style="background:${s};"></div>`)}
       </div>
-    `}render(){if(!this.hass||!this._config)return V;const t=this._config.entities.map(t=>function(t,e){const s=t.states[e.entity];if(!s)return 0;if("unavailable"===s.state||"unknown"===s.state||"none"===s.state)return 0;const i=parseFloat(s.state);return!isFinite(i)||i<0?0:i*function(t){switch(t?.trim().toLowerCase()){case"kw":return 1e3;case"mw":return 1e6;case"gw":return 1e9;default:return 1}}(s.attributes.unit_of_measurement)*(e.factor??1)}(this.hass,t)),e=t.reduce((t,e)=>t+e,0),s=t.filter(t=>t>0).length,i=this._renderBadge(s),r="left"===this._c.badge_position;return F`
+    `}render(){if(!this.hass||!this._config)return V;const t=this._config.entities.map(t=>function(t,e){const s=t.states[e.entity];if(!s)return 0;if("unavailable"===s.state||"unknown"===s.state||"none"===s.state)return 0;const i=parseFloat(s.state);return!isFinite(i)||i<1?0:i*function(t){switch(t?.trim().toLowerCase()){case"kw":return 1e3;case"mw":return 1e6;case"gw":return 1e9;default:return 1}}(s.attributes.unit_of_measurement)*(e.factor??1)}(this.hass,t)),e=t.reduce((t,e)=>t+e,0),s=t.filter(t=>t>0).length,i=this._renderBadge(s),r="left"===this._c.badge_position;return F`
       <ha-card>
         <div class="hpc-container">
           ${this._renderIcon(e)}
