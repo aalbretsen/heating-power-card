@@ -37,17 +37,24 @@ A compact Home Assistant Lovelace card that shows accumulated heating power from
 1. Open HACS → Frontend.
 2. Click the **⋮** menu → **Custom repositories**.
 3. Add `https://github.com/aalbretsen/heating-power-card` with category **Dashboard**.
-4. Search for **Heating Power Card** and install it.
-5. Reload the browser (Ctrl-Shift-R / ⌘-Shift-R).
+4. Search for **Heating Power Card** and click **Download**.
+5. Restart Home Assistant (**Developer Tools → Restart**).
+6. Hard-reload the browser (Ctrl-Shift-R / ⌘-Shift-R).
+
+> **Note:** HACS automatically registers the card resource with Home Assistant.
+> You do **not** need to add anything manually under Settings → Dashboards → Resources.
+> If the card is not found after restart, check that the resource
+> `/hacsfiles/heating-power-card/heating-power-card.js` appears in that list — HACS
+> should have added it. If it is missing, add it manually as a **JavaScript module**.
 
 ### Manual
 
 1. Download `dist/heating-power-card.js` from the [latest release][release-url].
 2. Place it in `config/www/heating-power-card.js`.
 3. In HA go to **Settings → Dashboards → ⋮ → Resources → Add resource**:
-   - URL: `/local/heating-power-card.js`
-   - Type: **JavaScript module**
-4. Reload the browser.
+  - URL: `/local/heating-power-card.js`
+  - Type: **JavaScript module**
+4. Restart Home Assistant, then hard-reload the browser.
 
 ---
 
