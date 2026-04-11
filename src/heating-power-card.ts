@@ -36,6 +36,15 @@ export interface EntityConfig {
    * Custom: factor: 10 converts a ×10 sensor to real W.
    */
   factor?: number;
+  /**
+   * Fixed wattage to subtract from the sensor reading before contributing
+   * to the total. Applied after unit conversion and factor.
+   * Use this when a sensor reports combined power (e.g. ventilation motor +
+   * heating element) and only the heating portion should be counted.
+   * If the result after subtraction is ≤ 0 the entity is treated as inactive.
+   * The value is always in Watts regardless of the sensor's own unit.
+   */
+  subtract?: number;
   /** Optional label, used only in card editor tooltips. */
   name?: string;
 }
@@ -164,8 +173,8 @@ function getEntityWatts(hass: HomeAssistant, cfg: EntityConfig): number {
   const raw = parseFloat(st.state);
   if (!isFinite(raw) || raw < 0) return 0;
   const unit = st.attributes.unit_of_measurement as string | undefined;
-  const value = raw * getUnitMultiplier(unit) * (cfg.factor ?? 1);
-  return value < 1 ? 0 : value
+  const value = raw * getUnitMultiplier(unit) * (cfg.factor ?? 1) - (cfg.subtract ?? 0);
+  return value < 1 ? 0 : value;
 }
 
 /**

@@ -6,7 +6,7 @@
 
 A compact Home Assistant Lovelace card that shows accumulated heating power from multiple sources on a single animated gauge bar.
 
-![Card preview](docs/preview.png)
+![Card preview](card_preview.png)
 
 ---
 
@@ -92,11 +92,12 @@ max_power: 10000
 
 ### EntityConfig
 
-| Option   | Type     | Default      | Description                                                                                                                       |
-|----------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `entity` | `string` | **required** | HA entity id of the power sensor.                                                                                                 |
-| `name`   | `string` | —            | Optional label (used in the card editor).                                                                                         |
-| `factor` | `number` | `1`          | Multiplier applied **on top of** unit auto-detection. Use `0.001` if the sensor reports mW, `10` if it under-reports by 10×, etc. |
+| Option     | Type     | Default      | Description                                                                                                                       |
+|------------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `entity`   | `string` | **required** | HA entity id of the power sensor.                                                                                                 |
+| `name`     | `string` | —            | Optional label (used in the card editor).                                                                                         |
+| `factor`   | `number` | `1`          | Multiplier applied **on top of** unit auto-detection. Use `0.001` if the sensor reports mW, `10` if it under-reports by 10×, etc. |
+| `subtract` | `number` | `0`          | Fixed wattage (always in W) to subtract from the sensor reading before contributing to the total. Applied after unit conversion and `factor`. Use this when a sensor reports combined power and only the heating portion should count — e.g. a ventilation unit that uses 100 W for its motor at all times: set `subtract: 100` and only the heating element power above that baseline is included. If the result is ≤ 0 the entity is treated as inactive (no dot, not counted in badge). |
 
 ### Unit auto-detection
 
@@ -190,6 +191,17 @@ entities:
   - entity: sensor.boiler_power_raw      # reports in W but ×10 over-reported
     factor: 0.1
 max_power: 15000
+```
+
+### Ventilation unit with a non-heating baseline
+
+```yaml
+type: custom:heating-power-card
+entities:
+  - entity: sensor.ventilation_power     # reports total: motor (100W) + heating element
+    subtract: 100                        # subtract the always-on motor load
+  - entity: sensor.floor_heater_power
+max_power: 10000
 ```
 
 ---
