@@ -15,18 +15,14 @@ A compact Home Assistant Lovelace card that shows accumulated heating power from
 - 🔥 **Configurable icon** — separate MDI icons and colours for active / inactive state
 - 🔢 **Total power value** — auto-formatted in kW, colour-coded by state
 - ⬤ **Active-source badge** — shows the count of sources currently drawing power; hides automatically when none are on
-- 📊 **Animated gauge bar** — three modes:
+- 📊 **Animated gauge bar** — two modes:
+  - `gradient` — colour transitions from light warm orange to deep HA orange as load increases (default)
   - `solid` — single colour fill
-  - `gradient` — colour transitions from a start colour to an end colour as load increases
-  - `stacked` — each source gets a proportional coloured segment
 - ↕️ **Optional scale** — configurable tick marks below the gauge
-- ⚫ **Per-source indicator dots** — three modes:
-  - `gradient` — dot colour interpolates between off and on colour
-  - `growth` — dot grows in size from min to max radius
-  - `steady` — binary on/off colour
+- ⚫ **Active-source dots** — one dot per active source (power > 0); grows column-first in up to 3 rows, adding columns as the active count increases
 - ⚖️ **Automatic unit handling** — W, kW, MW detected from `unit_of_measurement`; custom `factor` per sensor for non-standard units
 - ↔️ **Sections view native** — reports `grid_rows: 1`, `grid_columns: 12`; resizes cleanly in the new grid-based UI
-- 🔄 **Smooth CSS transitions** — gauge fill and dot changes animate at 0.5 s ease
+- 🔄 **Smooth CSS transitions** — gauge fill animates at 0.5 s ease
 
 ---
 
@@ -74,26 +70,21 @@ max_power: 10000
 
 ### Top-level options
 
-| Option                  | Type                       | Default          | Description                                                         |
-|-------------------------|----------------------------|------------------|---------------------------------------------------------------------|
-| `entities`              | `EntityConfig[]`           | **required**     | List of power sensor entities (max 99).                             |
-| `icon_active`           | `string`                   | `mdi:fire`       | MDI icon when total > 0.                                            |
-| `icon_inactive`         | `string`                   | `mdi:fire-off`   | MDI icon when total = 0.                                            |
-| `color_active`          | `string`                   | `#F57C00`        | CSS colour when heating is on (icon, value, badge, dots).           |
-| `color_inactive`        | `string`                   | `#9E9E9E`        | CSS colour when heating is off.                                     |
-| `badge_text_color`      | `string`                   | `#FFFFFF`        | Text colour of the active-sources count badge.                      |
-| `max_power`             | `number`                   | `15000`          | Full-scale in **Watts**.                                            |
-| `gauge_mode`            | `solid\|gradient\|stacked` | `solid`          | Visual style of the gauge bar.                                      |
-| `gauge_color`           | `string`                   | → `color_active` | Fill colour for `solid` mode.                                       |
-| `gauge_gradient_from`   | `string`                   | `#1565C0`        | Left colour for `gradient` mode.                                    |
-| `gauge_gradient_to`     | `string`                   | `#D32F2F`        | Right colour for `gradient` mode.                                   |
-| `show_scale`            | `boolean`                  | `true`           | Show tick marks below the gauge.                                    |
-| `scale_ticks`           | `number`                   | `5`              | Approximate number of major ticks.                                  |
-| `show_dots`             | `boolean`                  | `true`           | Show per-source indicator dots on the right.                        |
-| `dot_mode`              | `gradient\|growth\|steady` | `gradient`       | Visual encoding for dots.                                           |
-| `dot_off_color`         | `string`                   | `#E0E0E0`        | Dot colour when the source is off.                                  |
-| `dot_on_color`          | `string`                   | → `color_active` | Dot colour at full power (`gradient` / `steady` modes).             |
-| `dot_use_source_colors` | `boolean`                  | `false`          | Use each entity's own colour for its dot instead of `dot_on_color`. |
+| Option                | Type               | Default          | Description                                                                |
+|-----------------------|--------------------|------------------|----------------------------------------------------------------------------|
+| `entities`            | `EntityConfig[]`   | **required**     | List of power sensor entities (max 99).                                    |
+| `icon_active`         | `string`           | `mdi:fire`       | MDI icon when total > 0.                                                   |
+| `icon_inactive`       | `string`           | `mdi:fire-off`   | MDI icon when total = 0.                                                   |
+| `color_active`        | `string`           | `#FF8C00`        | CSS colour when heating is on (icon, value, badge, dots).                  |
+| `color_inactive`      | `string`           | `#9E9E9E`        | CSS colour when heating is off.                                             |
+| `badge_text_color`    | `string`           | `#FFFFFF`        | Text colour of the active-sources count badge.                             |
+| `max_power`           | `number`           | `15000`          | Full-scale in **Watts**.                                                   |
+| `gauge_mode`          | `solid\|gradient`  | `gradient`       | Visual style of the gauge bar.                                             |
+| `gauge_gradient_from` | `string`           | `#FFCC80`        | Low-end colour for `gradient` mode.                                        |
+| `gauge_gradient_to`   | `string`           | `#E65100`        | High-end colour for `gradient` mode.                                       |
+| `show_scale`          | `boolean`          | `true`           | Show tick marks below the gauge.                                           |
+| `scale_ticks`         | `number`           | `5`              | Approximate number of major ticks.                                         |
+| `show_dots`           | `boolean`          | `true`           | Show per-source indicator dots on the right.                               |
 
 ### EntityConfig
 
@@ -101,7 +92,6 @@ max_power: 10000
 |----------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | `entity` | `string` | **required** | HA entity id of the power sensor.                                                                                                 |
 | `name`   | `string` | —            | Optional label (used in the card editor).                                                                                         |
-| `color`  | `string` | auto         | CSS colour for this source in `stacked` gauge and source-coloured dots. Auto-assigned from a built-in palette when not set.       |
 | `factor` | `number` | `1`          | Multiplier applied **on top of** unit auto-detection. Use `0.001` if the sensor reports mW, `10` if it under-reports by 10×, etc. |
 
 ### Unit auto-detection
@@ -120,44 +110,30 @@ The card reads `unit_of_measurement` from the entity's attributes:
 
 ## Examples
 
-### Stacked gauge with source colours and growing dots
+### Default gradient bar with dots
 
 ```yaml
 type: custom:heating-power-card
 entities:
   - entity: sensor.heating_cable_power
-    name: Heating cable
-    color: "#1565C0"
   - entity: sensor.floor_heater_living_room
-    name: Floor — living room
-    color: "#F57C00"
   - entity: sensor.floor_heater_bedroom
-    name: Floor — bedroom
-    color: "#D32F2F"
   - entity: sensor.panel_heater_hall
-    name: Panel — hall
-    color: "#388E3C"
 max_power: 15000
-gauge_mode: stacked
-show_scale: true
-scale_ticks: 5
-show_dots: true
-dot_mode: growth
-dot_use_source_colors: true
 layout_options:
   grid_columns: 12
   grid_rows: 1
 ```
 
-### Simple solid bar, no dots, no scale
+### Solid bar, no dots, no scale
 
 ```yaml
 type: custom:heating-power-card
 entities:
-  - entity: sensor.total_heating_power   # pre-summed template sensor
-max_power: 10000
+  - entity: sensor.heating_cable_power
+  - entity: sensor.floor_heater_power
+max_power: 12000
 gauge_mode: solid
-gauge_color: "#E65100"
 show_scale: false
 show_dots: false
 layout_options:
@@ -165,7 +141,7 @@ layout_options:
   grid_rows: 1
 ```
 
-### Gradient bar, inactive style customised
+### Custom colours and icons
 
 ```yaml
 type: custom:heating-power-card
@@ -178,12 +154,8 @@ color_active: "#BF360C"
 color_inactive: "#607D8B"
 max_power: 12000
 gauge_mode: gradient
-gauge_gradient_from: "#42A5F5"
-gauge_gradient_to:   "#BF360C"
-show_scale: true
-show_dots: true
-dot_mode: gradient
-dot_off_color: "#CFD8DC"
+gauge_gradient_from: "#FFCCBC"
+gauge_gradient_to: "#BF360C"
 layout_options:
   grid_columns: 12
   grid_rows: 1
@@ -198,7 +170,6 @@ entities:
   - entity: sensor.boiler_power_raw      # reports in W but ×10 over-reported
     factor: 0.1
 max_power: 15000
-gauge_mode: solid
 ```
 
 ---

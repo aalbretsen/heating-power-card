@@ -23,8 +23,7 @@ interface HomeAssistant {
 
 // ─── Public config types ─────────────────────────────────────────────────────
 
-export type GaugeMode = "solid" | "gradient" | "stacked";
-export type DotMode = "gradient" | "growth" | "steady";
+export type GaugeMode = "solid" | "gradient";
 
 export interface EntityConfig {
   /** HA entity_id of a power sensor, e.g. sensor.floor_heater_power */
@@ -36,8 +35,6 @@ export interface EntityConfig {
    * Custom: factor: 10 converts a ×10 sensor to real W.
    */
   factor?: number;
-  /** CSS colour for this source (used in stacked gauge and per-source dots). */
-  color?: string;
   /** Optional label, used only in card editor tooltips. */
   name?: string;
 }
@@ -50,7 +47,7 @@ export interface HeatingPowerCardConfig {
   icon_active?: string;
   /** MDI icon when total = 0. Default: mdi:fire-off */
   icon_inactive?: string;
-  /** CSS colour when heating is active. Default: #F57C00 */
+  /** CSS colour when heating is active. Default: #FF8C00 */
   color_active?: string;
   /** CSS colour when heating is inactive. Default: #9E9E9E */
   color_inactive?: string;
@@ -62,13 +59,11 @@ export interface HeatingPowerCardConfig {
   // ── Gauge ─────────────────────────────────────────────────────────────────
   /** Full-scale value in Watts. Default: 15000 */
   max_power?: number;
-  /** Visual style of the gauge bar. Default: solid */
+  /** Visual style of the gauge bar. Default: gradient */
   gauge_mode?: GaugeMode;
-  /** Colour for solid mode (falls back to color_active). */
-  gauge_color?: string;
-  /** Left colour for gradient mode. Default: #1565C0 */
+  /** Left (low) colour for gradient mode. Default: #FFCC80 */
   gauge_gradient_from?: string;
-  /** Right colour for gradient mode. Default: #D32F2F */
+  /** Right (high) colour for gradient mode. Default: #E65100 */
   gauge_gradient_to?: string;
   /** Show tick-mark scale below the gauge. Default: true */
   show_scale?: boolean;
@@ -76,22 +71,11 @@ export interface HeatingPowerCardConfig {
   scale_ticks?: number;
 
   // ── Dots ──────────────────────────────────────────────────────────────────
-  /** Show per-source indicator dots on the right. Default: true */
+  /**
+   * Show per-source indicator dots on the right.
+   * One dot per active source (power > 0). Default: true
+   */
   show_dots?: boolean;
-  /** Visual encoding of dots. Default: gradient */
-  dot_mode?: DotMode;
-  /** Dot colour when source is off. Default: #E0E0E0 */
-  dot_off_color?: string;
-  /**
-   * Dot colour at full power for gradient/steady modes.
-   * Falls back to color_active when not set.
-   */
-  dot_on_color?: string;
-  /**
-   * Use each entity's own color (from EntityConfig.color or the
-   * auto-assigned palette colour) for its dot, instead of dot_on_color.
-   */
-  dot_use_source_colors?: boolean;
 }
 
 // ─── Defaults ────────────────────────────────────────────────────────────────
@@ -109,51 +93,22 @@ interface Defaults {
   show_scale: boolean;
   scale_ticks: number;
   show_dots: boolean;
-  dot_mode: DotMode;
-  dot_off_color: string;
-  dot_use_source_colors: boolean;
 }
 
 const DEFAULTS: Defaults = {
-  icon_active:           "mdi:fire",
-  icon_inactive:         "mdi:fire-off",
-  color_active:          "#F57C00",
-  color_inactive:        "#9E9E9E",
-  badge_text_color:      "#FFFFFF",
-  max_power:             15000,
-  gauge_mode:            "solid",
-  gauge_gradient_from:   "#1565C0",
-  gauge_gradient_to:     "#D32F2F",
-  show_scale:            true,
-  scale_ticks:           5,
-  show_dots:             true,
-  dot_mode:              "gradient",
-  dot_off_color:         "#E0E0E0",
-  dot_use_source_colors: false,
+  icon_active:          "mdi:fire",
+  icon_inactive:        "mdi:fire-off",
+  color_active:         "#FF8C00",
+  color_inactive:       "#9E9E9E",
+  badge_text_color:     "#FFFFFF",
+  max_power:            15000,
+  gauge_mode:           "gradient",
+  gauge_gradient_from:  "#DE9044",
+  gauge_gradient_to:    "#FF7C00",
+  show_scale:           true,
+  scale_ticks:          5,
+  show_dots:            true,
 };
-
-/**
- * Auto-assigned palette colours for entities without a configured color.
- * Cycles if there are more entities than colours in the array.
- */
-const SOURCE_COLORS: readonly string[] = [
-  "#1565C0", "#F57C00", "#D32F2F", "#388E3C",
-  "#7B1FA2", "#00838F", "#F9A825", "#558B2F",
-  "#AD1457", "#0277BD", "#6A1B9A", "#2E7D32",
-  "#BF360C", "#00695C", "#4527A0", "#283593",
-];
-
-/** Dot sizing tiers — automatically chosen based on source count. */
-const DOT_TIERS: ReadonlyArray<{
-  maxCount: number;
-  containerPx: number;
-  maxR: number;
-  minR: number;
-}> = [
-  { maxCount: 20, containerPx: 14, maxR: 6,   minR: 2   },
-  { maxCount: 40, containerPx: 11, maxR: 4.5, minR: 1.5 },
-  { maxCount: 99, containerPx: 9,  maxR: 3.5, minR: 1   },
-];
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
 
@@ -205,13 +160,6 @@ function niceTickInterval(max: number, desiredTicks: number): number {
   return nice * mag;
 }
 
-function getDotTier(count: number) {
-  return (
-    DOT_TIERS.find((t) => count <= t.maxCount) ??
-    DOT_TIERS[DOT_TIERS.length - 1]
-  );
-}
-
 function formatKw(watts: number): string {
   if (watts < 100)  return (watts / 1000).toFixed(2);
   if (watts < 10000) return (watts / 1000).toFixed(1);
@@ -253,36 +201,22 @@ export class HeatingPowerCard extends LitElement {
   static getStubConfig(): HeatingPowerCardConfig {
     return {
       entities: [
-        { entity: "sensor.heating_cable_power",  color: "#1565C0" },
-        { entity: "sensor.floor_heater_power",   color: "#F57C00" },
-        { entity: "sensor.panel_heater_power",   color: "#D32F2F" },
+        { entity: "sensor.heating_cable_power" },
+        { entity: "sensor.floor_heater_power" },
+        { entity: "sensor.panel_heater_power" },
       ],
       max_power: 15000,
-      gauge_mode: "stacked",
+      gauge_mode: "gradient",
       show_scale: true,
       show_dots: true,
-      dot_mode: "gradient",
-      dot_use_source_colors: true,
     };
   }
 
-  // ── Config helpers ────────────────────────────────────────────────────────
+  // ── Config helper ─────────────────────────────────────────────────────────
 
   /** Merged config with defaults applied. */
   private get _c(): Defaults & HeatingPowerCardConfig {
     return { ...DEFAULTS, ...this._config };
-  }
-
-  private _srcColor(index: number): string {
-    return this._config.entities[index]?.color ?? SOURCE_COLORS[index % SOURCE_COLORS.length];
-  }
-
-  private _activeColor(): string {
-    return this._c.color_active;
-  }
-
-  private _inactiveColor(): string {
-    return this._c.color_inactive;
   }
 
   // ── Sub-renderers ─────────────────────────────────────────────────────────
@@ -292,7 +226,7 @@ export class HeatingPowerCard extends LitElement {
     return html`
       <ha-icon
         .icon=${active ? this._c.icon_active : this._c.icon_inactive}
-        style="color: ${active ? this._activeColor() : this._inactiveColor()};"
+        style="color: ${active ? this._c.color_active : this._c.color_inactive};"
       ></ha-icon>
     `;
   }
@@ -300,7 +234,7 @@ export class HeatingPowerCard extends LitElement {
   private _renderValue(total: number): TemplateResult {
     const active = total > 0;
     return html`
-      <span class="hpc-value" style="color: ${active ? this._activeColor() : this._inactiveColor()};">
+      <span class="hpc-value" style="color: ${active ? this._c.color_active : this._c.color_inactive};">
         ${formatKw(total)}<span class="hpc-unit"> kW</span>
       </span>
     `;
@@ -310,32 +244,20 @@ export class HeatingPowerCard extends LitElement {
     if (activeCount === 0) return html``;
     return html`
       <span class="hpc-badge"
-        style="background:${this._activeColor()};color:${this._c.badge_text_color};">
+        style="background:${this._c.color_active};color:${this._c.badge_text_color};">
         ${activeCount}
       </span>
     `;
   }
 
-  private _renderGauge(watts: number[], total: number): TemplateResult {
+  private _renderGauge(total: number): TemplateResult {
     const max  = this._c.max_power;
     const mode = this._c.gauge_mode;
+    const pct  = Math.min(100, (total / max) * 100);
 
     let fill: TemplateResult | typeof nothing;
 
-    if (mode === "stacked") {
-      // Scale all segments proportionally if total exceeds max.
-      const scale = total > max ? max / total : 1;
-      fill = html`
-        ${watts.map((w, i) => {
-          const pct = (w * scale / max) * 100;
-          return pct > 0.005
-            ? html`<div class="hpc-segment"
-                style="width:${pct.toFixed(4)}%;background:${this._srcColor(i)};"></div>`
-            : nothing;
-        })}
-      `;
-    } else if (mode === "gradient") {
-      const pct  = Math.min(100, (total / max) * 100);
+    if (mode === "gradient") {
       const from = this._c.gauge_gradient_from;
       const to   = this._c.gauge_gradient_to;
       // The tip colour matches the gradient position at current load.
@@ -345,10 +267,11 @@ export class HeatingPowerCard extends LitElement {
           style="width:${pct.toFixed(4)}%;background:linear-gradient(to right,${from},${tip});"></div>
       `;
     } else {
-      // solid (default)
-      const pct   = Math.min(100, (total / max) * 100);
-      const color = this._config.gauge_color ?? this._activeColor();
-      fill = html`<div class="hpc-fill" style="width:${pct.toFixed(4)}%;background:${color};"></div>`;
+      // solid
+      fill = html`
+        <div class="hpc-fill"
+          style="width:${pct.toFixed(4)}%;background:${this._c.color_active};"></div>
+      `;
     }
 
     return html`
@@ -384,54 +307,27 @@ export class HeatingPowerCard extends LitElement {
     `;
   }
 
+  /**
+   * Render active-source dots.
+   *
+   * Layout: column-first grid, max 3 rows, columns grow as active count increases.
+   *   1–3 active  → 1 column  (rows fill top-to-bottom)
+   *   4–6 active  → 2 columns
+   *   7–9 active  → 3×3 grid
+   *   10–12 active → 4 columns (4th dot added to col 4 row 1, then row 2, row 3)
+   *   …and so on.
+   *
+   * Only active sources (watts > 0) produce a dot. Inactive sources are hidden.
+   */
   private _renderDots(watts: number[]): TemplateResult {
-    const max     = this._c.max_power;
-    const n       = watts.length;
-    // Each source is judged relative to an equal share of the total max.
-    const perMax  = n > 0 ? max / n : max;
-    const mode    = this._c.dot_mode;
-    const offCol  = this._c.dot_off_color;
-    const onCol   = this._config.dot_on_color ?? this._activeColor();
-    const useSrc  = this._c.dot_use_source_colors;
-    const { containerPx, maxR, minR } = getDotTier(n);
-    const half    = containerPx / 2;
+    const activeWatts = watts.filter((w) => w > 0);
+    if (activeWatts.length === 0) return html``;
+
+    const color = this._c.color_active;
 
     return html`
       <div class="hpc-dots">
-        ${watts.map((w, i) => {
-          const ratio    = perMax > 0 ? Math.min(1, w / perMax) : 0;
-          const srcColor = this._srcColor(i);
-
-          let fill: string;
-          let r: number;
-
-          switch (mode) {
-            case "growth":
-              // Size grows from minR to maxR; colour is on or off.
-              fill = w > 0 ? (useSrc ? srcColor : onCol) : offCol;
-              r    = w > 0 ? minR + (maxR - minR) * ratio : minR;
-              break;
-            case "steady":
-              // Binary on/off colour at fixed size.
-              fill = w > 0 ? (useSrc ? srcColor : onCol) : offCol;
-              r    = maxR;
-              break;
-            case "gradient":
-            default:
-              // Colour interpolates between offCol and on colour.
-              r    = maxR;
-              fill = interpolateColor(offCol, useSrc ? srcColor : onCol, ratio);
-              break;
-          }
-
-          return html`
-            <svg width="${containerPx}" height="${containerPx}"
-                 viewBox="0 0 ${containerPx} ${containerPx}"
-                 class="hpc-dot">
-              <circle cx="${half}" cy="${half}" r="${r.toFixed(2)}" fill="${fill}" />
-            </svg>
-          `;
-        })}
+        ${activeWatts.map(() => html`<div class="hpc-dot" style="background:${color};"></div>`)}
       </div>
     `;
   }
@@ -451,7 +347,7 @@ export class HeatingPowerCard extends LitElement {
           ${this._renderIcon(total)}
           ${this._renderValue(total)}
           ${this._renderBadge(activeCount)}
-          ${this._renderGauge(watts, total)}
+          ${this._renderGauge(total)}
           ${this._c.show_dots ? this._renderDots(watts) : nothing}
         </div>
       </ha-card>
@@ -480,7 +376,7 @@ export class HeatingPowerCard extends LitElement {
         padding: 0 14px;
         flex: 1;
         min-width: 0;
-        height: 56px;
+        height: 60px;
         box-sizing: border-box;
       }
 
@@ -533,25 +429,17 @@ export class HeatingPowerCard extends LitElement {
       }
 
       .hpc-track {
-        height: 10px;
-        border-radius: 5px;
+        height: 20px;
+        border-radius: 10px;
         background: var(--secondary-background-color, #e0e0e0);
         overflow: hidden;
         display: flex;
         flex-shrink: 0;
       }
 
-      /* Solid and gradient fills */
       .hpc-fill {
         height: 100%;
-        border-radius: 5px 0 0 5px;
-        flex-shrink: 0;
-        transition: width 0.5s ease;
-      }
-
-      /* Stacked mode segments */
-      .hpc-segment {
-        height: 100%;
+        border-radius: 10px 0 0 10px;
         flex-shrink: 0;
         transition: width 0.5s ease;
       }
@@ -579,20 +467,28 @@ export class HeatingPowerCard extends LitElement {
 
       /* ── Dots ── */
 
+      /*
+       * Column-first grid: 3 fixed rows, columns added as active count grows.
+       * grid-auto-flow: column fills top→bottom within each column before
+       * moving right, matching the spec: 1–3 → 1 col, 4–6 → 2 cols, 7–9 → 3×3,
+       * 10 → 4th col row 1, 11 → 4th col row 2, etc.
+       */
       .hpc-dots {
-        display: flex;
-        align-items: center;
+        display: grid;
+        grid-template-rows: repeat(3, 6px);
+        grid-auto-flow: column;
+        grid-auto-columns: 6px;
         gap: 2px;
         flex-shrink: 0;
+        align-content: center;
+        align-self: center;
       }
 
       .hpc-dot {
-        display: block;
-        flex-shrink: 0;
-      }
-
-      .hpc-dot circle {
-        transition: r 0.45s ease, fill 0.45s ease;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        transition: background 0.45s ease;
       }
     `;
   }
