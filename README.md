@@ -70,34 +70,34 @@ max_power: 10000
 
 ### Top-level options
 
-| Option                    | Type              | Default                       | Description                                                                |
-|---------------------------|-------------------|-------------------------------|----------------------------------------------------------------------------|
-| `entities`                | `EntityConfig[]`  | **required**                  | List of power sensor entities (max 99).                                    |
-| `icon_active`             | `string`          | `mdi:fire`                    | MDI icon when total > 0.                                                   |
-| `icon_inactive`           | `string`          | `mdi:fire-off`                | MDI icon when total = 0.                                                   |
-| `color_active`            | `string`          | `#FF8C00`                     | CSS colour when heating is on (icon, value, badge background, dots).       |
-| `color_inactive`          | `string`          | `#9E9E9E`                     | CSS colour when heating is off.                                             |
-| `show_badge`              | `boolean`         | `true`                        | Show the active-sources count badge.                                       |
-| `badge_background_color`  | `string`          | → `color_active`              | Badge background colour.                                                   |
-| `badge_text_color`        | `string`          | `var(--primary-text-color)`   | Badge text colour.                                                         |
-| `badge_position`          | `left\|right`     | `left`                        | `left` — between value and gauge. `right` — between gauge and dots.        |
-| `max_power`               | `number`          | `15000`                       | Full-scale in **Watts**.                                                   |
-| `gauge_mode`              | `solid\|gradient` | `gradient`                    | Visual style of the gauge bar.                                             |
-| `gauge_gradient_from`     | `string`          | `#DE9044`                     | Low-end colour for `gradient` mode.                                        |
-| `gauge_gradient_to`       | `string`          | `#FF7C00`                     | High-end colour for `gradient` mode.                                       |
-| `show_scale`              | `boolean`         | `true`                        | Show tick marks below the gauge.                                           |
-| `scale_ticks`             | `number`          | `5`                           | Approximate number of major ticks.                                         |
-| `show_dots`               | `boolean`         | `true`                        | Show per-source indicator dots on the right.                               |
-| `dot_color`               | `string`          | `var(--primary-text-color)`   | Dot colour. Defaults to the HA theme foreground (white in most themes).    |
+| Option                    | Type              | Description                                                                 |
+|---------------------------|-------------------|-----------------------------------------------------------------------------|
+| `entities`                | `EntityConfig[]`  | List of power sensor entities (max 99).                                     |
+| `icon_active`             | `string`          | MDI icon when total > 0.                                                    |
+| `icon_inactive`           | `string`          | MDI icon when total = 0.                                                    |
+| `color_active`            | `string`          | CSS colour when heating is on (icon, value, badge background, dots).        |
+| `color_inactive`          | `string`          | CSS colour when heating is off.                                             |
+| `show_badge`              | `boolean`         | Show the active-sources count badge.                                        |
+| `badge_background_color`  | `string`          | Badge background colour.                                                    |
+| `badge_text_color`        | `string`          | Badge text colour.                                                          |
+| `badge_position`          | `left\|right`     | `left` — between value and gauge. `right` — between gauge and dots.         |
+| `max_power`               | `number`          | Full-scale in **Watts**.                                                    |
+| `gauge_mode`              | `solid\|gradient` | Visual style of the gauge bar.                                              |
+| `gauge_gradient_from`     | `string`          | Low-end colour for `gradient` mode (Material Orange 300).                   |
+| `gauge_gradient_to`       | `string`          | High-end colour for `gradient` mode (Material Deep Orange 900).             |
+| `show_scale`              | `boolean`         | Show tick marks below the gauge.                                            |
+| `scale_ticks`             | `number`          | Approximate number of major ticks.                                          |
+| `show_dots`               | `boolean`         | Show per-source indicator dots on the right.                                |
+| `dot_color`               | `string`          | Dot colour. Defaults to the HA theme foreground (white in most themes).     |
 
 ### EntityConfig
 
-| Option     | Type     | Default      | Description                                                                                                                       |
-|------------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `entity`   | `string` | **required** | HA entity id of the power sensor.                                                                                                 |
-| `name`     | `string` | —            | Optional label (used in the card editor).                                                                                         |
-| `factor`   | `number` | `1`          | Multiplier applied **on top of** unit auto-detection. Use `0.001` if the sensor reports mW, `10` if it under-reports by 10×, etc. |
-| `subtract` | `number` | `0`          | Fixed wattage (always in W) to subtract from the sensor reading before contributing to the total. Applied after unit conversion and `factor`. Use this when a sensor reports combined power and only the heating portion should count — e.g. a ventilation unit that uses 100 W for its motor at all times: set `subtract: 100` and only the heating element power above that baseline is included. If the result is ≤ 0 the entity is treated as inactive (no dot, not counted in badge). |
+| Option     | Type     | Description                                                                                              |
+|------------|----------|----------------------------------------------------------------------------------------------------------|
+| `entity`   | `string` | HA entity id of the power sensor.                                                                        |
+| `name`     | `string` | Optional label (used in the card editor).                                                                |
+| `factor`   | `number` | Multiplier applied **on top of** unit auto-detection. Use `0.1` if the sensor under-reports by 10×, etc. |
+| `subtract` | `number` | Fixed wattage (always in W) to subtract from the sensor reading before contributing to the total.        |
 
 ### Unit auto-detection
 
