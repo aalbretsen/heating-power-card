@@ -28,10 +28,10 @@ export class HeatingPowerCardEditor extends LitElement {
       {
         type: "grid",
         schema: [
-          { name: "icon_active",    label: "Icon — heating on",            selector: { icon: {} } },
-          { name: "icon_inactive",  label: "Icon — heating off",           selector: { icon: {} } },
-          { name: "color_active",   label: "Colour — active (CSS hex)",    selector: { text: {} } },
-          { name: "color_inactive", label: "Colour — inactive (CSS hex)",  selector: { text: {} } },
+          { name: "icon_active", label: "Icon — heating on", selector: { icon: {} } },
+          { name: "icon_inactive", label: "Icon — heating off", selector: { icon: {} } },
+          { name: "color_active", label: "Colour — active (CSS hex)", selector: { text: {} } },
+          { name: "color_inactive", label: "Colour — inactive (CSS hex)", selector: { text: {} } },
         ],
       },
     ];
@@ -39,32 +39,54 @@ export class HeatingPowerCardEditor extends LitElement {
 
   private get _badgeSchema() {
     return [
-      { name: "show_badge",             label: "Show source count badge",                           selector: { boolean: {} } },
-      { name: "badge_position",         label: "Badge position",                                    selector: { select: { options: [{ value: "left", label: "Left of gauge" }, { value: "right", label: "Right of gauge" }] } } },
+      { name: "show_badge", label: "Show source count badge", selector: { boolean: {} } },
+      {
+        name: "badge_position",
+        label: "Badge position",
+        selector: {
+          select: {
+            options: [
+              { value: "left", label: "Left of gauge" },
+              { value: "right", label: "Right of gauge" },
+            ],
+          },
+        },
+      },
       { name: "badge_background_color", label: "Badge background (CSS hex, default = active colour)", selector: { text: {} } },
-      { name: "badge_text_color",       label: "Badge text colour (CSS)",                           selector: { text: {} } },
+      { name: "badge_text_color", label: "Badge text colour (CSS)", selector: { text: {} } },
     ];
   }
 
   private get _gaugeSchema() {
     const isGradient = (this._config.gauge_mode ?? DEFAULTS.gauge_mode) === "gradient";
     return [
-      { name: "max_power",  label: "Max power (W)", selector: { number: { min: 1, step: 100, mode: "box" as const } } },
-      { name: "gauge_mode", label: "Gauge style",   selector: { select: { options: [{ value: "gradient", label: "Gradient" }, { value: "solid", label: "Solid colour" }] } } },
+      { name: "max_power", label: "Max power (W)", selector: { number: { min: 1, step: 100, mode: "box" as const } } },
+      {
+        name: "gauge_mode",
+        label: "Gauge style",
+        selector: {
+          select: {
+            options: [
+              { value: "gradient", label: "Gradient" },
+              { value: "solid", label: "Solid colour" },
+            ],
+          },
+        },
+      },
       ...(isGradient
         ? [
             { name: "gauge_gradient_from", label: "Gradient start colour (CSS hex)", selector: { text: {} } },
-            { name: "gauge_gradient_to",   label: "Gradient end colour (CSS hex)",   selector: { text: {} } },
+            { name: "gauge_gradient_to", label: "Gradient end colour (CSS hex)", selector: { text: {} } },
           ]
         : []),
-      { name: "show_scale",  label: "Show scale ticks", selector: { boolean: {} } },
-      { name: "scale_ticks", label: "Number of ticks",  selector: { number: { min: 2, max: 20, step: 1, mode: "box" as const } } },
+      { name: "show_scale", label: "Show scale ticks", selector: { boolean: {} } },
+      { name: "scale_ticks", label: "Number of ticks", selector: { number: { min: 2, max: 20, step: 1, mode: "box" as const } } },
     ];
   }
 
   private get _dotsSchema() {
     return [
-      { name: "show_dots", label: "Show active-source dots",                 selector: { boolean: {} } },
+      { name: "show_dots", label: "Show active-source dots", selector: { boolean: {} } },
       { name: "dot_color", label: "Dot colour (CSS, default = theme white)", selector: { text: {} } },
     ];
   }
@@ -98,15 +120,6 @@ export class HeatingPowerCardEditor extends LitElement {
         }
         return updated;
       }
-      if (field === "name") {
-        const updated = { ...e };
-        if (raw === "") {
-          delete updated.name;
-        } else {
-          updated.name = raw;
-        }
-        return updated;
-      }
       return { ...e, [field]: raw };
     });
     this._dispatch({ ...this._config, entities });
@@ -137,11 +150,6 @@ export class HeatingPowerCardEditor extends LitElement {
           ></ha-icon-button>
         </div>
         <div class="entity-fields">
-          <ha-textfield
-            label="Name (optional)"
-            .value=${cfg.name ?? ""}
-            @change=${(ev: Event) => this._entityChanged(idx, "name", (ev.target as HTMLInputElement).value)}
-          ></ha-textfield>
           <ha-textfield
             label="Factor"
             type="number"

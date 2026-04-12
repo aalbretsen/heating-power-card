@@ -14,7 +14,6 @@ export interface EntityConfig {
   entity: string;
   factor?: number;
   subtract?: number;
-  name?: string;
 }
 
 export interface HeatingPowerCardConfig {

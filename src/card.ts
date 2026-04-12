@@ -37,11 +37,7 @@ export class HeatingPowerCard extends LitElement {
 
   static getStubConfig(): HeatingPowerCardConfig {
     return {
-      entities: [
-        { entity: "sensor.heating_cable_power" },
-        { entity: "sensor.floor_heater_power" },
-        { entity: "sensor.panel_heater_power" },
-      ],
+      entities: [{ entity: "sensor.heating_cable_power" }, { entity: "sensor.floor_heater_power" }, { entity: "sensor.panel_heater_power" }],
       max_power: 15000,
       gauge_mode: "gradient",
       show_scale: true,
@@ -55,17 +51,12 @@ export class HeatingPowerCard extends LitElement {
 
   private _renderIcon(total: number): TemplateResult {
     const active = total > 0;
-    return html`<ha-icon
-      .icon=${active ? this._c.icon_active : this._c.icon_inactive}
-      style="color: ${active ? this._c.color_active : this._c.color_inactive};"
-    ></ha-icon>`;
+    return html`<ha-icon .icon=${active ? this._c.icon_active : this._c.icon_inactive} style="color: ${active ? this._c.color_active : this._c.color_inactive};"></ha-icon>`;
   }
 
   private _renderValue(total: number): TemplateResult {
     const active = total > 0;
-    return html`<span class="hpc-value" style="color: ${active ? this._c.color_active : this._c.color_inactive};">
-      ${formatKw(total)}<span class="hpc-unit"> kW</span>
-    </span>`;
+    return html`<span class="hpc-value" style="color: ${active ? this._c.color_active : this._c.color_inactive};"> ${formatKw(total)}<span class="hpc-unit"> kW</span> </span>`;
   }
 
   private _renderBadge(activeCount: number): TemplateResult {
@@ -80,7 +71,14 @@ export class HeatingPowerCard extends LitElement {
 
     const fill =
       this._c.gauge_mode === "gradient"
-        ? html`<div class="hpc-fill" style="width:${pct.toFixed(4)}%;background:linear-gradient(to right,${this._c.gauge_gradient_from},${interpolateColor(this._c.gauge_gradient_from, this._c.gauge_gradient_to, total / max)});"></div>`
+        ? html`<div
+            class="hpc-fill"
+            style="width:${pct.toFixed(4)}%;background:linear-gradient(to right,${this._c.gauge_gradient_from},${interpolateColor(
+              this._c.gauge_gradient_from,
+              this._c.gauge_gradient_to,
+              total / max,
+            )});"
+          ></div>`
         : html`<div class="hpc-fill" style="width:${pct.toFixed(4)}%;background:${this._c.color_active};"></div>`;
 
     return html`
@@ -113,11 +111,7 @@ export class HeatingPowerCard extends LitElement {
     const active = watts.filter((w) => w > 0);
     if (active.length === 0) return html``;
     const color = this._config.dot_color ?? "var(--primary-text-color)";
-    return html`
-      <div class="hpc-dots">
-        ${active.map(() => html`<div class="hpc-dot" style="background:${color};"></div>`)}
-      </div>
-    `;
+    return html` <div class="hpc-dots">${active.map(() => html`<div class="hpc-dot" style="background:${color};"></div>`)}</div> `;
   }
 
   protected render(): TemplateResult | typeof nothing {
@@ -132,11 +126,7 @@ export class HeatingPowerCard extends LitElement {
     return html`
       <ha-card>
         <div class="hpc-container">
-          ${this._renderIcon(total)}
-          ${this._renderValue(total)}
-          ${badgeLeft ? badge : nothing}
-          ${this._renderGauge(total)}
-          ${badgeLeft ? nothing : badge}
+          ${this._renderIcon(total)} ${this._renderValue(total)} ${badgeLeft ? badge : nothing} ${this._renderGauge(total)} ${badgeLeft ? nothing : badge}
           ${this._c.show_dots ? this._renderDots(watts) : nothing}
         </div>
       </ha-card>
@@ -159,8 +149,8 @@ export class HeatingPowerCard extends LitElement {
       .hpc-container {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 0 14px;
+        gap: 12px;
+        padding: 0 18px;
         flex: 1;
         min-width: 0;
         height: 56px;
@@ -193,12 +183,12 @@ export class HeatingPowerCard extends LitElement {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 20px;
-        height: 20px;
+        min-width: 22px;
+        height: 22px;
         border-radius: 10px;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
-        padding: 0 5px;
+        padding: 0 6px;
         flex-shrink: 0;
         line-height: 1;
         box-sizing: border-box;
@@ -210,12 +200,12 @@ export class HeatingPowerCard extends LitElement {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 3px;
+        margin: 6px;
       }
 
       .hpc-track {
-        height: 20px;
-        border-radius: 10px;
+        height: 18px;
+        border-radius: 6px;
         background: var(--secondary-background-color, #e0e0e0);
         overflow: hidden;
         display: flex;
@@ -224,7 +214,7 @@ export class HeatingPowerCard extends LitElement {
 
       .hpc-fill {
         height: 100%;
-        border-radius: 10px 0 0 10px;
+        border-radius: 6px 0 0 6px;
         flex-shrink: 0;
         transition: width 0.5s ease;
       }
@@ -245,20 +235,21 @@ export class HeatingPowerCard extends LitElement {
         white-space: nowrap;
       }
 
-      .hpc-tick--mid   { transform: translateX(-50%); }
-      .hpc-tick--start { transform: translateX(0); }
-      .hpc-tick--end   { transform: translateX(-100%); }
+      .hpc-tick--mid {
+        transform: translateX(-50%);
+      }
+      .hpc-tick--start {
+        transform: translateX(0);
+      }
+      .hpc-tick--end {
+        transform: translateX(-100%);
+      }
 
-      /*
-       * Column-first grid: CSS auto-places items top→bottom within each column
-       * before moving right. 3 fixed rows means 1 col for ≤3 dots, 2 cols for
-       * ≤6, 3×3 for ≤9, and so on — exactly matching the design intent.
-       */
       .hpc-dots {
         display: grid;
-        grid-template-rows: repeat(3, 6px);
+        grid-template-rows: repeat(3, 5px);
         grid-auto-flow: column;
-        grid-auto-columns: 6px;
+        grid-auto-columns: 5px;
         gap: 2px;
         flex-shrink: 0;
         align-content: center;
@@ -266,8 +257,8 @@ export class HeatingPowerCard extends LitElement {
       }
 
       .hpc-dot {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
         transition: background 0.45s ease;
       }
