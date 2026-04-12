@@ -247,9 +247,9 @@ export class HeatingPowerCard extends LitElement {
 
       .hpc-dots {
         display: grid;
-        grid-template-rows: repeat(3, 5px);
+        grid-template-rows: repeat(3, 6px);
         grid-auto-flow: column;
-        grid-auto-columns: 5px;
+        grid-auto-columns: 6px;
         gap: 2px;
         flex-shrink: 0;
         align-content: center;
@@ -257,10 +257,10 @@ export class HeatingPowerCard extends LitElement {
       }
 
       .hpc-dot {
-        width: 5px;
-        height: 5px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
-        transition: background 0.45s ease;
+        transition: background 0.25s ease;
       }
     `;
   }

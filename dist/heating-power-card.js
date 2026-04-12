@@ -243,9 +243,9 @@ function t(t,e,i,s){var r,n=arguments.length,o=n<3?e:null===s?s=Object.getOwnPro
 
       .hpc-dots {
         display: grid;
-        grid-template-rows: repeat(3, 5px);
+        grid-template-rows: repeat(3, 6px);
         grid-auto-flow: column;
-        grid-auto-columns: 5px;
+        grid-auto-columns: 6px;
         gap: 2px;
         flex-shrink: 0;
         align-content: center;
@@ -253,9 +253,9 @@ function t(t,e,i,s){var r,n=arguments.length,o=n<3?e:null===s?s=Object.getOwnPro
       }
 
       .hpc-dot {
-        width: 5px;
-        height: 5px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
-        transition: background 0.45s ease;
+        transition: background 0.25s ease;
       }
     `}};t([pt({attribute:!1})],mt.prototype,"hass",void 0),t([ut()],mt.prototype,"_config",void 0),mt=t([ht("heating-power-card")],mt),window.customCards??(window.customCards=[]),window.customCards.push({type:"heating-power-card",name:"Heating Power Card",description:"Compact card showing accumulated heating power from multiple sources.",preview:!0,documentationURL:"https://github.com/aalbretsen/heating-power-card"});
