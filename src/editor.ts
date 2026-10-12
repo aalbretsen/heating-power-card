@@ -91,9 +91,9 @@ export class HeatingPowerCardEditor extends LitElement {
     ];
   }
 
-  private _formChanged(ev: CustomEvent): void {
+  private _formChanged(ev: CustomEvent<{ value: Partial<HeatingPowerCardConfig> }>): void {
     ev.stopPropagation();
-    this._dispatch({ ...this._config, ...(ev.detail.value as Partial<HeatingPowerCardConfig>) });
+    this._dispatch({ ...this._config, ...ev.detail.value });
   }
 
   private _addEntity(): void {
@@ -125,9 +125,9 @@ export class HeatingPowerCardEditor extends LitElement {
     this._dispatch({ ...this._config, entities });
   }
 
-  private _entityPickerChanged(index: number, ev: CustomEvent): void {
+  private _entityPickerChanged(index: number, ev: CustomEvent<{ value?: string }>): void {
     ev.stopPropagation();
-    this._entityChanged(index, "entity", (ev.detail.value as string) ?? "");
+    this._entityChanged(index, "entity", ev.detail.value ?? "");
   }
 
   private _renderEntityRow(cfg: EntityConfig, idx: number): TemplateResult {
@@ -141,7 +141,7 @@ export class HeatingPowerCardEditor extends LitElement {
             .value=${cfg.entity}
             .includeDomains=${["sensor"]}
             allow-custom-entity
-            @value-changed=${(ev: CustomEvent) => this._entityPickerChanged(idx, ev)}
+            @value-changed=${(ev: CustomEvent<{ value?: string }>) => this._entityPickerChanged(idx, ev)}
           ></ha-entity-picker>
           <ha-icon-button
             .label=${"Remove"}

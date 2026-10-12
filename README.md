@@ -21,7 +21,7 @@ A compact Home Assistant Lovelace card that shows accumulated heating power from
 - ↕️ **Optional scale** — configurable tick marks below the gauge
 - ⚫ **Active-source dots** — one dot per active source (power > 0), colour configurable
 - ⚖️ **Automatic unit handling** — W, kW, MW detected from `unit_of_measurement`; custom `factor` per sensor for non-standard units
-- ↔️ **Sections view native** — reports `grid_rows: 1`, `grid_columns: 12`; resizes cleanly in the new grid-based UI
+- ↔️ **Sections view native** — defaults to `rows: 1`, `columns: 12` via `getGridOptions()`; resizes cleanly in the grid-based sections view
 - 🔄 **Smooth CSS transitions** — gauge fill animates at 0.5 s ease
 
 ---
@@ -30,7 +30,7 @@ A compact Home Assistant Lovelace card that shows accumulated heating power from
 
 ### Via HACS (recommended)
 
-1. Open HACS → Frontend.
+1. Open HACS.
 2. Click the **⋮** menu → **Custom repositories**.
 3. Add `https://github.com/aalbretsen/heating-power-card` with category **Dashboard**.
 4. Search for **Heating Power Card** and click **Download**.
@@ -125,9 +125,9 @@ entities:
   - entity: sensor.floor_heater_bedroom
   - entity: sensor.panel_heater_hall
 max_power: 15000
-layout_options:
-  grid_columns: 12
-  grid_rows: 1
+grid_options:
+  columns: 12
+  rows: 1
 ```
 
 ### Badge on the right, custom dot colour
@@ -140,9 +140,9 @@ entities:
 max_power: 15000
 badge_position: right
 dot_color: "#FF8C00"
-layout_options:
-  grid_columns: 12
-  grid_rows: 1
+grid_options:
+  columns: 12
+  rows: 1
 ```
 
 ### Badge hidden, solid bar, no scale
@@ -157,9 +157,9 @@ gauge_mode: solid
 show_badge: false
 show_scale: false
 show_dots: false
-layout_options:
-  grid_columns: 12
-  grid_rows: 1
+grid_options:
+  columns: 12
+  rows: 1
 ```
 
 ### Custom colours and icons
@@ -177,9 +177,9 @@ max_power: 12000
 gauge_mode: gradient
 gauge_gradient_from: "#FFCCBC"
 gauge_gradient_to: "#BF360C"
-layout_options:
-  grid_columns: 12
-  grid_rows: 1
+grid_options:
+  columns: 12
+  rows: 1
 ```
 
 ### kW sensor with correction factor
@@ -228,7 +228,7 @@ npm run lint
 npm run format
 ```
 
-After `npm run build`, commit `dist/heating-power-card.js` to the repository so HACS can install it without requiring a build step.
+After `npm run build:prod`, commit `dist/heating-power-card.js` to the repository so HACS can install it without requiring a build step.
 
 ---
 

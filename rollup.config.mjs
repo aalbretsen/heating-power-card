@@ -16,7 +16,7 @@ export default {
 
   plugins: [
     resolve(),
-    typescript({ tsconfig: "./tsconfig.json" }),
+    typescript({ tsconfig: "./tsconfig.json", sourceMap: !production }),
     // Minify only in production builds
     production && terser({
       format: { comments: false },
